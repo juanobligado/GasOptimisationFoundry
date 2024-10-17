@@ -206,6 +206,7 @@ contract GasContract is Ownable, Constants {
         balances[senderOfTx] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
+        
         Payment memory payment;
         payment.admin = address(0);
         payment.adminUpdated = false;
@@ -215,12 +216,11 @@ contract GasContract is Ownable, Constants {
         payment.recipientName = _name;
         payment.paymentID = ++paymentCounter;
         payments[senderOfTx].push(payment);
-        bool[] memory status = new bool[](tradePercent);
-        for (uint256 i = 0; i < tradePercent; i++) {
-            status[i] = true;
-        }
-        return (status[0] == true);
+        
+        return true; // Simplified return, no need for the status array
     }
+
+
 
     function updatePayment(
         address _user,
