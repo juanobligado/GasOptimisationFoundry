@@ -8,26 +8,22 @@ contract Constants {
     uint8 public basicFlag = 0;
     uint8 public dividendFlag = 1;
     uint8 public tradePercent = 12;
-}
+    }
 
 struct InternalState {
-    uint256 totalSupply;
-    uint256 paymentCounter;
-    uint256 tradeMode;
-    uint256 wasLastOdd;
-    bool isReady;
+    uint32 paymentCounter;
+    uint32 tradeMode;
+    uint32 wasLastOdd;
+    uint32 isReady;
 }
 contract GasContract is Ownable, Constants {
     InternalState internalState;
-    uint256 public totalSupply = 0; // cannot be updated
-    uint256 public paymentCounter = 0;
+    uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
-    address public contractOwner;
-    uint256 public tradeMode = 0;
+    address contractOwner;
     mapping(address => Payment[]) public payments;
     mapping(address => uint256) public whitelist;
     address[5] public administrators;
-    bool public isReady = false;
     enum PaymentType {
         Unknown,
         BasicPayment,
@@ -54,8 +50,7 @@ contract GasContract is Ownable, Constants {
         address updatedBy;
         uint256 blockNumber;
     }
-    uint256 wasLastOdd = 1;
-    mapping(address => uint256) public isOddWhitelistUser;
+    mapping(address => uint32) public isOddWhitelistUser;
     
     struct ImportantStruct {
         uint256 amount;
@@ -111,8 +106,11 @@ contract GasContract is Ownable, Constants {
     constructor(address[] memory _admins, uint256 _totalSupply) {
         contractOwner = msg.sender;
         totalSupply = _totalSupply;
-
-        for (uint256 ii = 0; ii < administrators.length; ii++) {
+        internalState.isReady = 0;
+        internalState.wasLastOdd = 0;
+        internalState.paymentCounter = 0;
+        
+        for (uint256 ii = 0; ii < 5; ii++) {
             if (_admins[ii] != address(0)) {
                 administrators[ii] = _admins[ii];
                 if (_admins[ii] == contractOwner) {
@@ -153,13 +151,7 @@ contract GasContract is Ownable, Constants {
     }
 
     function getTradingMode() public view returns (bool mode_) {
-        bool mode = false;
-        if (tradeFlag == 1 || dividendFlag == 1) {
-            mode = true;
-        } else {
-            mode = false;
-        }
-        return mode;
+        return (tradeFlag == 1 || dividendFlag == 1);
     }
 
 
@@ -212,7 +204,7 @@ contract GasContract is Ownable, Constants {
         payment.recipient = _recipient;
         payment.amount = _amount;
         payment.recipientName = _name;
-        payment.paymentID = ++paymentCounter;
+        payment.paymentID = ++internalState.paymentCounter;
         payments[senderOfTx].push(payment);
         bool[] memory status = new bool[](tradePercent);
         for (uint256 i = 0; i < tradePercent; i++) {
@@ -275,15 +267,13 @@ contract GasContract is Ownable, Constants {
             whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 2;
         }
-        uint256 wasLastAddedOdd = wasLastOdd;
+        uint32 wasLastAddedOdd = internalState.wasLastOdd;
         if (wasLastAddedOdd == 1) {
-            wasLastOdd = 0;
+            internalState.wasLastOdd = 0;
             isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
         } else if (wasLastAddedOdd == 0) {
-            wasLastOdd = 1;
+            internalState.wasLastOdd = 1;
             isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
-        } else {
-            revert();
         }
         emit AddedToWhitelist(_userAddrs, _tier);
     }
