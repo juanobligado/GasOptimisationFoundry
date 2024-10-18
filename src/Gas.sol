@@ -21,7 +21,7 @@ contract GasContract is Ownable, Constants {
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
     address contractOwner;
-    mapping(address => Payment[]) public payments;
+    mapping(address => mapping(uint256 => Payment))  public payments;
     mapping(address => uint256) public whitelist;
     address[5] public administrators;
     enum PaymentType {
@@ -32,9 +32,7 @@ contract GasContract is Ownable, Constants {
         GroupPayment
     }
     PaymentType constant defaultPayment = PaymentType.Unknown;
-
     History[] public paymentHistory; // when a payment was updated
-
     struct Payment {
         PaymentType paymentType;
         uint256 paymentID;
@@ -44,7 +42,6 @@ contract GasContract is Ownable, Constants {
         address admin; // administrators address
         uint256 amount;
     }
-
     struct History {
         uint256 lastUpdate;
         address updatedBy;
@@ -146,8 +143,7 @@ contract GasContract is Ownable, Constants {
     }
 
     function balanceOf(address _user) public view returns (uint256 balance_) {
-        uint256 balance = balances[_user];
-        return balance;
+        return balances[_user];
     }
 
     function getTradingMode() public view returns (bool mode_) {
@@ -171,16 +167,6 @@ contract GasContract is Ownable, Constants {
         return ((status[0] == true), _tradeMode);
     }
 
-    function getPayments(address _user)
-        public
-        view
-        returns (Payment[] memory payments_)
-    {
-        require(
-            _user != address(0)
-        );
-        return payments[_user];
-    }
 
     function transfer(
         address _recipient,
@@ -191,9 +177,7 @@ contract GasContract is Ownable, Constants {
         require(
             balances[senderOfTx] >= _amount
         );
-        require(
-            bytes(_name).length < 9
-                    );
+
         balances[senderOfTx] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
@@ -205,7 +189,7 @@ contract GasContract is Ownable, Constants {
         payment.amount = _amount;
         payment.recipientName = _name;
         payment.paymentID = ++internalState.paymentCounter;
-        payments[senderOfTx].push(payment);
+        payments[senderOfTx][payment.paymentID] = payment;
         bool[] memory status = new bool[](tradePercent);
         for (uint256 i = 0; i < tradePercent; i++) {
             status[i] = true;
@@ -231,22 +215,19 @@ contract GasContract is Ownable, Constants {
 
         address senderOfTx = msg.sender;
 
-        for (uint256 ii = 0; ii < payments[_user].length; ii++) {
-            if (payments[_user][ii].paymentID == _ID) {
-                payments[_user][ii].adminUpdated = true;
-                payments[_user][ii].admin = _user;
-                payments[_user][ii].paymentType = _type;
-                payments[_user][ii].amount = _amount;
-                bool tradingMode = getTradingMode();
-                addHistory(_user, tradingMode);
-                emit PaymentUpdated(
-                    senderOfTx,
-                    _ID,
-                    _amount,
-                    payments[_user][ii].recipientName
-                );
-            }
-        }
+        payments[_user][_ID].amount = _amount;
+        payments[_user][_ID].paymentType = _type;
+        payments[_user][_ID].adminUpdated = true;
+        payments[_user][_ID].admin = senderOfTx;
+        bool tradingMode = getTradingMode();
+        addHistory(_user, tradingMode);
+        emit PaymentUpdated(
+            senderOfTx,
+            _ID,
+            _amount,
+            payments[_user][_ID].recipientName
+        );
+
     }
 
     function addToWhitelist(address _userAddrs, uint256 _tier)
