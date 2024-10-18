@@ -4,16 +4,24 @@ pragma solidity ^0.8.0;
 import "./Ownable.sol";
 
 contract Constants {
-    uint256 public tradeFlag = 1;
-    uint256 public basicFlag = 0;
-    uint256 public dividendFlag = 1;
+    uint8 public tradeFlag = 1;
+    uint8 public basicFlag = 0;
+    uint8 public dividendFlag = 1;
+    uint8 public tradePercent = 12;
 }
 
+struct InternalState {
+    uint256 totalSupply;
+    uint256 paymentCounter;
+    uint256 tradeMode;
+    uint256 wasLastOdd;
+    bool isReady;
+}
 contract GasContract is Ownable, Constants {
+    InternalState internalState;
     uint256 public totalSupply = 0; // cannot be updated
     uint256 public paymentCounter = 0;
     mapping(address => uint256) public balances;
-    uint256 public tradePercent = 12;
     address public contractOwner;
     uint256 public tradeMode = 0;
     mapping(address => Payment[]) public payments;
@@ -170,8 +178,8 @@ contract GasContract is Ownable, Constants {
         history.lastUpdate = block.timestamp;
         history.updatedBy = _updateAddress;
         paymentHistory.push(history);
-        bool[] memory status = new bool[](tradePercent);
-        for (uint256 i = 0; i < tradePercent; i++) {
+        bool[] memory status = new bool[](Constants.tradePercent);
+        for (uint256 i = 0; i < Constants.tradePercent; i++) {
             status[i] = true;
         }
         return ((status[0] == true), _tradeMode);
