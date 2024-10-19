@@ -30,10 +30,9 @@ struct Payment {
     uint256 amount;
 }
 
-contract GasContract is Ownable, Constants {
-    address contractOwner;
+contract GasContract is Constants {
     address[5] public administrators;
-
+    address public contractOwner;
     InternalState internalState;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
@@ -111,6 +110,7 @@ contract GasContract is Ownable, Constants {
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
+
         Payment memory payment;
         payment.paymentID = ++internalState.paymentCounter;
         payment.paymentType = PaymentType.BasicPayment;
