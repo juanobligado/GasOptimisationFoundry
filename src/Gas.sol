@@ -13,7 +13,6 @@ contract Constants {
 struct InternalState {
     uint32 paymentCounter;
     uint32 tradeMode;
-    uint32 wasLastOdd;
     uint32 isReady;
 }
 contract GasContract is Ownable, Constants {
@@ -37,7 +36,7 @@ contract GasContract is Ownable, Constants {
         PaymentType paymentType;
         uint256 paymentID;
         bool adminUpdated;
-        string recipientName; // max 8 characters
+//        string recipientName; // max 8 characters
         address recipient;
         address admin; // administrators address
         uint256 amount;
@@ -96,7 +95,7 @@ contract GasContract is Ownable, Constants {
         address admin,
         uint256 ID,
         uint256 amount,
-        string recipient
+        address recipient
     );
     event WhiteListTransfer(address indexed);
 
@@ -104,7 +103,6 @@ contract GasContract is Ownable, Constants {
         contractOwner = msg.sender;
         totalSupply = _totalSupply;
         internalState.isReady = 0;
-        internalState.wasLastOdd = 0;
         internalState.paymentCounter = 0;
         
         for (uint256 ii = 0; ii < 5; ii++) {
@@ -173,23 +171,21 @@ contract GasContract is Ownable, Constants {
         uint256 _amount,
         string calldata _name
     ) public  {
-        address senderOfTx = msg.sender;
         require(
-            balances[senderOfTx] >= _amount
+            balances[msg.sender] >= _amount
         );
 
-        balances[senderOfTx] -= _amount;
+        balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
         Payment memory payment;
+        payment.paymentID = ++internalState.paymentCounter;
         payment.admin = address(0);
         payment.adminUpdated = false;
         payment.paymentType = PaymentType.BasicPayment;
         payment.recipient = _recipient;
         payment.amount = _amount;
-        payment.recipientName = _name;
-        payment.paymentID = ++internalState.paymentCounter;
-        payments[senderOfTx][payment.paymentID] = payment;
+        payments[msg.sender][payment.paymentID] = payment;
     }
 
     function updatePayment(
@@ -216,13 +212,6 @@ contract GasContract is Ownable, Constants {
         payments[_user][_ID].admin = senderOfTx;
         bool tradingMode = getTradingMode();
         addHistory(_user, tradingMode);
-        emit PaymentUpdated(
-            senderOfTx,
-            _ID,
-            _amount,
-            payments[_user][_ID].recipientName
-        );
-
     }
 
     function addToWhitelist(address _userAddrs, uint256 _tier)
@@ -232,24 +221,14 @@ contract GasContract is Ownable, Constants {
         require(
             _tier < 255
         );
-        whitelist[_userAddrs] = _tier;
         if (_tier > 3) {
-            whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 3;
         } else if (_tier == 1) {
-            whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 1;
         } else if (_tier > 0 && _tier < 3) {
-            whitelist[_userAddrs] -= _tier;
             whitelist[_userAddrs] = 2;
-        }
-        uint32 wasLastAddedOdd = internalState.wasLastOdd;
-        if (wasLastAddedOdd == 1) {
-            internalState.wasLastOdd = 0;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
-        } else if (wasLastAddedOdd == 0) {
-            internalState.wasLastOdd = 1;
-            isOddWhitelistUser[_userAddrs] = wasLastAddedOdd;
+        } else {
+            whitelist[_userAddrs] = _tier;
         }
         emit AddedToWhitelist(_userAddrs, _tier);
     }
