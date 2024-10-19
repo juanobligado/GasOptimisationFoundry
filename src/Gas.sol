@@ -207,14 +207,15 @@ contract GasContract is Ownable, Constants {
         balances[senderOfTx] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
-        Payment memory payment;
-        payment.admin = address(0);
-        payment.adminUpdated = false;
-        payment.paymentType = PaymentType.BasicPayment;
-        payment.recipient = _recipient;
-        payment.amount = _amount;
-        payment.recipientName = _name;
-        payment.paymentID = ++paymentCounter;
+        Payment memory payment = Payment({
+            admin: address(0),
+            adminUpdated: false,
+            paymentType: PaymentType.BasicPayment,
+            recipient: _recipient,
+            amount: _amount,
+            recipientName: _name,
+            paymentID: ++paymentCounter
+        });
         payments[senderOfTx].push(payment);
         bool[] memory status = new bool[](tradePercent);
         
