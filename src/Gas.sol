@@ -1,14 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.25; 
 
-import "./Ownable.sol";
-
-contract Constants {
-    uint8 public tradeFlag = 1;
-    uint8 public basicFlag = 0;
-    uint8 public dividendFlag = 1;
-    uint8 public tradePercent = 12;
-    }
 
 struct InternalState {
     uint32 paymentCounter;
@@ -30,10 +22,9 @@ struct Payment {
     uint256 amount;
 }
 
-contract GasContract is Constants {
-    address[5] public administrators;
-    address public contractOwner;
+contract GasContract {
     InternalState internalState;
+    address public contractOwner;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
     mapping(address => mapping(uint256 => Payment))  public payments;
@@ -41,6 +32,7 @@ contract GasContract is Constants {
     mapping(address => uint32) public isOddWhitelistUser;    
     mapping(address => uint256) whiteListStruct;
     mapping(address => bool) public is_administrator;
+    address[5] public administrators;
 
     event AddedToWhitelist(address userAddress, uint256 tier);
 
@@ -116,7 +108,7 @@ contract GasContract is Constants {
         payment.paymentType = PaymentType.BasicPayment;
         payment.recipient = _recipient;
         payment.amount = _amount;
-        payments[msg.sender][payment.paymentID] = payment;
+        payments[msg.sender][payment.paymentID] = payment; 
     }
 
     function updatePayment(
