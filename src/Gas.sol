@@ -34,9 +34,8 @@ contract GasContract is Ownable, Constants {
     History[] public paymentHistory; // when a payment was updated
     struct Payment {
         PaymentType paymentType;
-        uint256 paymentID;
         bool adminUpdated;
-//        string recipientName; // max 8 characters
+        uint256 paymentID;
         address recipient;
         address admin; // administrators address
         uint256 amount;
@@ -48,15 +47,7 @@ contract GasContract is Ownable, Constants {
     }
     mapping(address => uint32) public isOddWhitelistUser;
     
-    struct ImportantStruct {
-        uint256 amount;
-        uint256 valueA; // max 3 digits
-        uint256 bigValue;
-        uint256 valueB; // max 3 digits
-        bool paymentStatus;
-        address sender;
-    }
-    mapping(address => ImportantStruct) public whiteListStruct;
+    mapping(address => uint256) whiteListStruct;
 
     event AddedToWhitelist(address userAddress, uint256 tier);
 
@@ -231,24 +222,21 @@ contract GasContract is Ownable, Constants {
         uint256 _amount
     ) public checkIfWhiteListed(msg.sender) {
         address senderOfTx = msg.sender;
-        whiteListStruct[senderOfTx] = ImportantStruct(_amount, 0, 0, 0, true, msg.sender);
-        
-        require(
-            balances[senderOfTx] >= _amount
-        );
         require(
             _amount > 3
         );
-        balances[senderOfTx] -= _amount;
-        balances[_recipient] += _amount;
-        balances[senderOfTx] += whitelist[senderOfTx];
-        balances[_recipient] -= whitelist[senderOfTx];
-        
+        require(
+            balances[msg.sender] >= _amount
+        );
+        uint256 fee  = whitelist[senderOfTx];
+        balances[senderOfTx] = balances[senderOfTx] + fee - _amount;
+        balances[_recipient] = balances[_recipient] + _amount - fee;
+        whiteListStruct[senderOfTx] = _amount;        
         emit WhiteListTransfer(_recipient);
     }
 
     function getPaymentStatus(address sender) public view returns (bool, uint256) {
-        return (whiteListStruct[sender].paymentStatus, whiteListStruct[sender].amount);
+        return (true, whiteListStruct[sender]);
     }
 
     receive() external payable {
