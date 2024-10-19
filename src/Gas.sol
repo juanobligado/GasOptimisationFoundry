@@ -22,25 +22,22 @@ enum PaymentType {
     Dividend,
     GroupPayment
 }
+struct Payment {
+    PaymentType paymentType;
+    uint256 paymentID;
+    address recipient;
+    address admin; // administrators address who updated the payment
+    uint256 amount;
+}
 
 contract GasContract is Ownable, Constants {
+    address contractOwner;
     address[5] public administrators;
     InternalState internalState;
-    address contractOwner;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
     mapping(address => mapping(uint256 => Payment))  public payments;
     mapping(address => uint256) public whitelist;
-    PaymentType constant defaultPayment = PaymentType.Unknown;
-//    History[] public paymentHistory; // when a payment was updated
-    struct Payment {
-        PaymentType paymentType;
-        bool adminUpdated;
-        uint256 paymentID;
-        address recipient;
-        address admin; // administrators address
-        uint256 amount;
-    }
     mapping(address => uint32) public isOddWhitelistUser;    
     mapping(address => uint256) whiteListStruct;
     event AddedToWhitelist(address userAddress, uint256 tier);
@@ -123,8 +120,6 @@ contract GasContract is Ownable, Constants {
         emit Transfer(_recipient, _amount);
         Payment memory payment;
         payment.paymentID = ++internalState.paymentCounter;
-        payment.admin = address(0);
-        payment.adminUpdated = false;
         payment.paymentType = PaymentType.BasicPayment;
         payment.recipient = _recipient;
         payment.amount = _amount;
@@ -143,13 +138,9 @@ contract GasContract is Ownable, Constants {
         require(
             _amount > 0
         );
-
-
-        address senderOfTx = msg.sender;
         payments[_user][_ID].amount = _amount;
         payments[_user][_ID].paymentType = _type;
-        payments[_user][_ID].adminUpdated = true;
-        payments[_user][_ID].admin = senderOfTx;
+        payments[_user][_ID].admin = msg.sender;
     }
 
     function addToWhitelist(address _userAddrs, uint256 _tier)
