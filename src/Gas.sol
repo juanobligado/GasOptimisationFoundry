@@ -199,6 +199,7 @@ contract GasContract is Ownable, Constants {
             balances[senderOfTx] >= _amount,
             "Gas Contract - Transfer function - Sender has insufficient Balance"
         );
+        
         require(
             bytes(_name).length < 9,
             "Gas Contract - Transfer function -  The recipient name is too long, there is a max length of 8 characters"
@@ -206,7 +207,6 @@ contract GasContract is Ownable, Constants {
         balances[senderOfTx] -= _amount;
         balances[_recipient] += _amount;
         emit Transfer(_recipient, _amount);
-        
         Payment memory payment;
         payment.admin = address(0);
         payment.adminUpdated = false;
@@ -216,10 +216,10 @@ contract GasContract is Ownable, Constants {
         payment.recipientName = _name;
         payment.paymentID = ++paymentCounter;
         payments[senderOfTx].push(payment);
+        bool[] memory status = new bool[](tradePercent);
         
-        return true; // Simplified return, no need for the status array
+        return (status[0] == true);
     }
-
 
 
     function updatePayment(
