@@ -32,7 +32,7 @@ contract GasContract is Ownable, Constants {
     mapping(address => mapping(uint256 => Payment))  public payments;
     mapping(address => uint256) public whitelist;
     PaymentType constant defaultPayment = PaymentType.Unknown;
-    History[] public paymentHistory; // when a payment was updated
+//    History[] public paymentHistory; // when a payment was updated
     struct Payment {
         PaymentType paymentType;
         bool adminUpdated;
@@ -41,15 +41,8 @@ contract GasContract is Ownable, Constants {
         address admin; // administrators address
         uint256 amount;
     }
-    struct History {
-        uint256 lastUpdate;
-        address updatedBy;
-        uint256 blockNumber;
-    }
-    mapping(address => uint32) public isOddWhitelistUser;
-    
+    mapping(address => uint32) public isOddWhitelistUser;    
     mapping(address => uint256) whiteListStruct;
-
     event AddedToWhitelist(address userAddress, uint256 tier);
 
     modifier onlyAdminOrOwner() {
@@ -96,13 +89,6 @@ contract GasContract is Ownable, Constants {
         }
     }
 
-    function getPaymentHistory()
-        public
-        payable
-        returns (History[] memory paymentHistory_)
-    {
-        return paymentHistory;
-    }
 
     function checkForAdmin(address _user) public view returns (bool admin_) {
         bool admin = false;
@@ -120,23 +106,6 @@ contract GasContract is Ownable, Constants {
 
     function getTradingMode() public view returns (bool mode_) {
         return (tradeFlag == 1 || dividendFlag == 1);
-    }
-
-
-    function addHistory(address _updateAddress, bool _tradeMode)
-        public
-        returns (bool status_, bool tradeMode_)
-    {
-        History memory history;
-        history.blockNumber = block.number;
-        history.lastUpdate = block.timestamp;
-        history.updatedBy = _updateAddress;
-        paymentHistory.push(history);
-        bool[] memory status = new bool[](Constants.tradePercent);
-        for (uint256 i = 0; i < Constants.tradePercent; i++) {
-            status[i] = true;
-        }
-        return ((status[0] == true), _tradeMode);
     }
 
 
@@ -174,18 +143,13 @@ contract GasContract is Ownable, Constants {
         require(
             _amount > 0
         );
-        require(
-            _user != address(0)
-        );
+
 
         address senderOfTx = msg.sender;
-
         payments[_user][_ID].amount = _amount;
         payments[_user][_ID].paymentType = _type;
         payments[_user][_ID].adminUpdated = true;
         payments[_user][_ID].admin = senderOfTx;
-        bool tradingMode = getTradingMode();
-        addHistory(_user, tradingMode);
     }
 
     function addToWhitelist(address _userAddrs, uint256 _tier)
