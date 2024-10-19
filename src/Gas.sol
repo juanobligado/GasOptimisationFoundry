@@ -172,7 +172,7 @@ contract GasContract is Ownable, Constants {
         address _recipient,
         uint256 _amount,
         string calldata _name
-    ) public returns (bool status_) {
+    ) public  {
         address senderOfTx = msg.sender;
         require(
             balances[senderOfTx] >= _amount
@@ -190,7 +190,6 @@ contract GasContract is Ownable, Constants {
         payment.recipientName = _name;
         payment.paymentID = ++internalState.paymentCounter;
         payments[senderOfTx][payment.paymentID] = payment;
-        return (true);
     }
 
     function updatePayment(
