@@ -221,16 +221,9 @@ contract GasContract is Ownable, Constants {
         require(
             _tier < 255
         );
-        if (_tier > 3) {
-            whitelist[_userAddrs] = 3;
-        } else if (_tier == 1) {
-            whitelist[_userAddrs] = 1;
-        } else if (_tier > 0 && _tier < 3) {
-            whitelist[_userAddrs] = 2;
-        } else {
-            whitelist[_userAddrs] = _tier;
-        }
         emit AddedToWhitelist(_userAddrs, _tier);
+        whitelist[_userAddrs] = _tier > 3 ? 3 : _tier;
+
     }
 
     function whiteTransfer(
