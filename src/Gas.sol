@@ -68,10 +68,6 @@ contract GasContract is Ownable, Constants {
         require(
             senderOfTx == sender
         );
-        uint256 usersTier = whitelist[senderOfTx];
-        require(
-            usersTier > 0 
-        );
         _;
     }
 
@@ -91,20 +87,15 @@ contract GasContract is Ownable, Constants {
         internalState.isReady = 0;
         internalState.paymentCounter = 0;
         
-        for (uint256 ii = 0; ii < 5; ii++) {
-            if (_admins[ii] != address(0)) {
-                administrators[ii] = _admins[ii];
-                if (_admins[ii] == contractOwner) {
-                    balances[contractOwner] = totalSupply;
-                } else {
-                    balances[_admins[ii]] = 0;
-                }
-                if (_admins[ii] == contractOwner) {
-                    emit supplyChanged(_admins[ii], totalSupply);
-                } else if (_admins[ii] != contractOwner) {
-                    emit supplyChanged(_admins[ii], 0);
-                }
-            }
+        for (uint8 ii = 0; ii < 5; ii++) {
+            address _address = _admins[ii];
+            if (_address == address(0))
+                continue;
+            administrators[ii] = _address;
+            if (_address != contractOwner)
+                continue;
+
+            balances[_address] = totalSupply;
         }
     }
 
