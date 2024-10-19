@@ -15,21 +15,22 @@ struct InternalState {
     uint32 tradeMode;
     uint32 isReady;
 }
+enum PaymentType {
+    Unknown,
+    BasicPayment,
+    Refund,
+    Dividend,
+    GroupPayment
+}
+
 contract GasContract is Ownable, Constants {
+    address[5] public administrators;
     InternalState internalState;
+    address contractOwner;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
-    address contractOwner;
     mapping(address => mapping(uint256 => Payment))  public payments;
     mapping(address => uint256) public whitelist;
-    address[5] public administrators;
-    enum PaymentType {
-        Unknown,
-        BasicPayment,
-        Refund,
-        Dividend,
-        GroupPayment
-    }
     PaymentType constant defaultPayment = PaymentType.Unknown;
     History[] public paymentHistory; // when a payment was updated
     struct Payment {
@@ -54,9 +55,6 @@ contract GasContract is Ownable, Constants {
     modifier onlyAdminOrOwner() {
         address senderOfTx = msg.sender;
         if (checkForAdmin(senderOfTx)) {
-            require(
-                checkForAdmin(senderOfTx)
-            );
             _;
         } else if (senderOfTx == contractOwner) {
             _;
@@ -72,10 +70,7 @@ contract GasContract is Ownable, Constants {
         );
         uint256 usersTier = whitelist[senderOfTx];
         require(
-            usersTier > 0
-        );
-        require(
-            usersTier < 4
+            usersTier > 0 
         );
         _;
     }
