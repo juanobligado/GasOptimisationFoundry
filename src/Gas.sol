@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0; 
+pragma solidity ^0.8.25; 
 
 import "./Ownable.sol";
 
@@ -26,13 +26,14 @@ struct Payment {
     PaymentType paymentType;
     uint256 paymentID;
     address recipient;
-    address admin; // administrators address who updated the payment
+    address admin; // administrators address who 
     uint256 amount;
 }
 
 contract GasContract is Ownable, Constants {
     address contractOwner;
     address[5] public administrators;
+
     InternalState internalState;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
@@ -40,6 +41,8 @@ contract GasContract is Ownable, Constants {
     mapping(address => uint256) public whitelist;
     mapping(address => uint32) public isOddWhitelistUser;    
     mapping(address => uint256) whiteListStruct;
+    mapping(address => bool) public is_administrator;
+
     event AddedToWhitelist(address userAddress, uint256 tier);
 
     modifier onlyAdminOrOwner() {
@@ -49,7 +52,7 @@ contract GasContract is Ownable, Constants {
         } else if (senderOfTx == contractOwner) {
             _;
         } else {
-            revert();
+            revert ();
         }
     }
 
@@ -79,30 +82,20 @@ contract GasContract is Ownable, Constants {
             if (_address == address(0))
                 continue;
             administrators[ii] = _address;
+            is_administrator[_address] = true;
             if (_address != msg.sender)
                 continue;
-
             balances[_address] = _totalSupply;
         }
     }
 
 
     function checkForAdmin(address _user) public view returns (bool admin_) {
-        bool admin = false;
-        for (uint256 ii = 0; ii < administrators.length; ii++) {
-            if (administrators[ii] == _user) {
-                admin = true;
-            }
-        }
-        return admin;
+        return is_administrator[_user];
     }
 
     function balanceOf(address _user) public view returns (uint256 balance_) {
         return balances[_user];
-    }
-
-    function getTradingMode() public view returns (bool mode_) {
-        return (tradeFlag == 1 || dividendFlag == 1);
     }
 
 
