@@ -84,18 +84,15 @@ contract GasContract is Ownable, Constants {
     constructor(address[] memory _admins, uint256 _totalSupply) {
         contractOwner = msg.sender;
         totalSupply = _totalSupply;
-        internalState.isReady = 0;
-        internalState.paymentCounter = 0;
-        
         for (uint8 ii = 0; ii < 5; ii++) {
             address _address = _admins[ii];
             if (_address == address(0))
                 continue;
             administrators[ii] = _address;
-            if (_address != contractOwner)
+            if (_address != msg.sender)
                 continue;
 
-            balances[_address] = totalSupply;
+            balances[_address] = _totalSupply;
         }
     }
 
