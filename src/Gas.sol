@@ -2,11 +2,7 @@
 pragma solidity ^0.8.25; 
 
 
-struct InternalState {
-    uint32 paymentCounter;
-    uint32 tradeMode;
-    uint32 isReady;
-}
+
 enum PaymentType {
     Unknown,
     BasicPayment,
@@ -17,13 +13,11 @@ enum PaymentType {
 
 
 contract GasContract {
-    InternalState internalState;
     address public contractOwner;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
     mapping(address => uint256) public whitelist;
-    mapping(address => uint32) public isOddWhitelistUser;    
-    mapping(address => uint256) whiteListStruct;
+    mapping(address => uint256) last_amount;
     mapping(address => bool) public is_administrator;
     address[5] public administrators;
 
@@ -31,13 +25,11 @@ contract GasContract {
 
     modifier onlyAdminOrOwner() {
         address senderOfTx = msg.sender;
-        if (checkForAdmin(senderOfTx)) {
-            _;
-        } else if (senderOfTx == contractOwner) {
-            _;
+        if (!is_administrator[senderOfTx]) {
+            revert();
         } else {
-            revert ();
-        }
+            _;
+        } 
     }
 
     modifier checkIfWhiteListed(address sender) {
@@ -116,20 +108,17 @@ contract GasContract {
     ) public checkIfWhiteListed(msg.sender) {
         address senderOfTx = msg.sender;
         require(
-            _amount > 3
-        );
-        require(
-            balances[msg.sender] >= _amount
+            _amount > 3 && balances[msg.sender] >= _amount
         );
         uint256 fee  = whitelist[senderOfTx];
         balances[senderOfTx] = balances[senderOfTx] + fee - _amount;
         balances[_recipient] = balances[_recipient] + _amount - fee;
-        whiteListStruct[senderOfTx] = _amount;        
+        last_amount[senderOfTx] = _amount;        
         emit WhiteListTransfer(_recipient);
     }
 
     function getPaymentStatus(address sender) public view returns (bool, uint256) {
-        return (true, whiteListStruct[sender]);
+        return (true, last_amount[sender]);
     }
 
     receive() external payable {
