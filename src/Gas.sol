@@ -1,17 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.25; 
 
-
-
-enum PaymentType {
-    Unknown,
-    BasicPayment,
-    Refund,
-    Dividend,
-    GroupPayment
-}
-
-
 contract GasContract {
     address public contractOwner;
     uint256 totalSupply = 0; // cannot be updated
@@ -107,7 +96,6 @@ contract GasContract {
     receive() external payable {
         payable(msg.sender).transfer(msg.value);
     }
-
 
     fallback() external payable {
          payable(msg.sender).transfer(msg.value);
