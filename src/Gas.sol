@@ -21,33 +21,16 @@ contract GasContract {
     mapping(address => bool) public is_administrator;
     address[5] public administrators;
 
-    event AddedToWhitelist(address userAddress, uint256 tier);
 
     modifier onlyAdminOrOwner() {
-        address senderOfTx = msg.sender;
-        if (!is_administrator[senderOfTx]) {
+        if (!is_administrator[msg.sender]) {
             revert();
         } else {
             _;
         } 
     }
 
-    modifier checkIfWhiteListed(address sender) {
-        address senderOfTx = msg.sender;
-        require(
-            senderOfTx == sender
-        );
-        _;
-    }
-
-    event supplyChanged(address indexed, uint256 indexed);
-    event Transfer(address recipient, uint256 amount);
-    event PaymentUpdated(
-        address admin,
-        uint256 ID,
-        uint256 amount,
-        address recipient
-    );
+    event AddedToWhitelist(address userAddress, uint256 tier);
     event WhiteListTransfer(address indexed);
 
     constructor(address[] memory _admins, uint256 _totalSupply) {
@@ -80,13 +63,13 @@ contract GasContract {
         uint256 _amount,
         string calldata _name
     ) public  {
+        uint256 senderBalance = balances[msg.sender];
         require(
-            balances[msg.sender] >= _amount
+            senderBalance >= _amount
         );
 
-        balances[msg.sender] -= _amount;
+        balances[msg.sender] = senderBalance - _amount;
         balances[_recipient] += _amount;
-        emit Transfer(_recipient, _amount);
     }
 
 
@@ -105,15 +88,15 @@ contract GasContract {
     function whiteTransfer(
         address _recipient,
         uint256 _amount
-    ) public checkIfWhiteListed(msg.sender) {
-        address senderOfTx = msg.sender;
+    ) public  {
+        uint256 senderBalance = balances[msg.sender];
         require(
-            balances[msg.sender] >= _amount
+            senderBalance >= _amount
         );
-        uint256 fee  = whitelist[senderOfTx];
-        balances[senderOfTx] = balances[senderOfTx] + fee - _amount;
-        balances[_recipient] = balances[_recipient] + _amount - fee;
-        last_amount[senderOfTx] = _amount;        
+        uint256 delta  = _amount - whitelist[msg.sender];
+        balances[msg.sender] = senderBalance - delta;
+        balances[_recipient] = balances[_recipient] + delta;
+        last_amount[msg.sender] = _amount;        
         emit WhiteListTransfer(_recipient);
     }
 
