@@ -53,7 +53,7 @@ contract GasContract {
     constructor(address[] memory _admins, uint256 _totalSupply) {
         contractOwner = msg.sender;
         totalSupply = _totalSupply;
-        for (uint8 ii = 0; ii < 5; ii++) {
+        for (uint32 ii = 0; ii < 5; ii++) {
             address _address = _admins[ii];
             if (_address == address(0))
                 continue;
@@ -108,7 +108,7 @@ contract GasContract {
     ) public checkIfWhiteListed(msg.sender) {
         address senderOfTx = msg.sender;
         require(
-            _amount > 3 && balances[msg.sender] >= _amount
+            balances[msg.sender] >= _amount
         );
         uint256 fee  = whitelist[senderOfTx];
         balances[senderOfTx] = balances[senderOfTx] + fee - _amount;
