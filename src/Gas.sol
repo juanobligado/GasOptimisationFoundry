@@ -2,12 +2,12 @@
 pragma solidity ^0.8.25; 
 
 contract GasContract {
-    address public contractOwner;
+    address  contractOwner;
     uint256 totalSupply = 0; // cannot be updated
     mapping(address => uint256) public balances;
     mapping(address => uint256) public whitelist;
     mapping(address => uint256) last_amount;
-    mapping(address => bool) public is_administrator;
+    mapping(address => bool)  is_administrator;
     address[5] public administrators;
 
 
