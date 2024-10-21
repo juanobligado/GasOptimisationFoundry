@@ -56,7 +56,6 @@ contract GasContract {
         require(
             senderBalance >= _amount
         );
-
         balances[msg.sender] = senderBalance - _amount;
         balances[_recipient] += _amount;
     }
@@ -84,7 +83,7 @@ contract GasContract {
         );
         uint256 delta  = _amount - whitelist[msg.sender];
         balances[msg.sender] = senderBalance - delta;
-        balances[_recipient] = balances[_recipient] + delta;
+        balances[_recipient] += delta;
         last_amount[msg.sender] = _amount;        
         emit WhiteListTransfer(_recipient);
     }
